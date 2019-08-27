@@ -1,0 +1,40 @@
+version: "3.7"
+
+networks:
+  hello_net:
+    driver: overlay
+    name: hello_net
+    attachable: true
+
+services:
+  replicated:
+    image: pythonincontainers/flask-hostname
+    ports:
+      - target: 5000
+        published: 5000
+        mode: ingress
+    hostname: "hello-{{.Task.Slot}}"
+    deploy:
+      mode: replicated
+      replicas: 2
+      endpoint_mode: vip
+    networks:
+      - hello_net
+
+  global:
+    image: pythonincontainers/flask-hostname
+    ports:
+      - target: 5000
+        published: 5001
+        mode: host
+    hostname: "hello-{{.Node.Hostname}}"
+    deploy:
+      mode: global
+      endpoint_mode: vip
+    networks:
+      - hello_net
+
+  single:
+    image: pythonincontainers/flask-hostname
+    networks:
+      - hello_net
